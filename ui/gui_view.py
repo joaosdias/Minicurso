@@ -2,7 +2,7 @@
 
 Suporta:
 - Tela de Início (Start Screen / Menu Principal)
-- Tela de Combate (Arena com sprites, números flutuantes e novas habilidades)
+- Tela de Combate (Arena com sprites, números flutuantes, barra de XP e nível)
 - Tela de Fim de Jogo (Victory / Defeat Screen com estatísticas)
 """
 
@@ -209,6 +209,7 @@ class GUIView:
         status_frame = tk.Frame(main_layout, bg=settings.BG_COLOR)
         status_frame.pack(fill=tk.X, pady=(0, 10))
 
+        # Box do Jogador (Hero)
         player_box = tk.LabelFrame(
             status_frame,
             text=f" HERÓI: {self.engine.player.name} ",
@@ -220,6 +221,17 @@ class GUIView:
         )
         player_box.pack(side=tk.LEFT, expand=True, fill=tk.BOTH, padx=(0, 5))
 
+        # Nível do Jogador
+        self.player_level_lbl = tk.Label(
+            player_box,
+            text="",
+            font=("Helvetica", 10, "bold"),
+            bg=settings.PANEL_BG,
+            fg=settings.ACCENT_COLOR,
+        )
+        self.player_level_lbl.pack(anchor="w")
+
+        # Vida (HP) do Jogador
         self.player_hp_lbl = tk.Label(
             player_box,
             text="",
@@ -232,8 +244,24 @@ class GUIView:
         self.player_progress = ttk.Progressbar(
             player_box, orient="horizontal", mode="determinate"
         )
-        self.player_progress.pack(fill=tk.X, pady=5)
+        self.player_progress.pack(fill=tk.X, pady=(2, 5))
 
+        # Experiência (XP) do Jogador
+        self.player_xp_lbl = tk.Label(
+            player_box,
+            text="",
+            font=("Helvetica", 9, "bold"),
+            bg=settings.PANEL_BG,
+            fg="#89b4fa",
+        )
+        self.player_xp_lbl.pack(anchor="w")
+
+        self.player_xp_progress = ttk.Progressbar(
+            player_box, orient="horizontal", mode="determinate"
+        )
+        self.player_xp_progress.pack(fill=tk.X, pady=(2, 5))
+
+        # Poções
         self.potions_lbl = tk.Label(
             player_box,
             text="",
@@ -243,6 +271,7 @@ class GUIView:
         )
         self.potions_lbl.pack(anchor="w")
 
+        # Box do Inimigo
         enemy_box = tk.LabelFrame(
             status_frame,
             text=f" OPONENTE: {self.engine.enemy.name} ",
@@ -457,12 +486,20 @@ class GUIView:
         p = self.engine.player
         e = self.engine.enemy
 
+        # Atualiza Nível, HP e Barra de Vida do Jogador
+        self.player_level_lbl.config(text=f"Nível: {p.level}")
         self.player_hp_lbl.config(text=f"Vida: {p.health} / {p.max_health} HP")
-        self.player_progress["value"] = (p.health / p.max_health) * 100
+        self.player_progress["value"] = (p.health / p.max_health) * 100 if p.max_health > 0 else 0
 
+        # Atualiza XP e Barra de Experiência
+        self.player_xp_lbl.config(text=f"XP: {p.xp} / {p.xp_to_next_level}")
+        self.player_xp_progress["value"] = (p.xp / p.xp_to_next_level) * 100 if p.xp_to_next_level > 0 else 0
+
+        # Atualiza HP e Barra de Vida do Inimigo
         self.enemy_hp_lbl.config(text=f"Vida: {e.health} / {e.max_health} HP")
-        self.enemy_progress["value"] = (e.health / e.max_health) * 100
+        self.enemy_progress["value"] = (e.health / e.max_health) * 100 if e.max_health > 0 else 0
 
+        # Atualiza Poções
         potions_text = f"Poções: {p.potions_count} | Especial CD: {p.special_attack_cooldown}"
         self.potions_lbl.config(text=potions_text)
 
@@ -528,6 +565,14 @@ class GUIView:
             bg=settings.PANEL_BG,
             fg=settings.ACCENT_COLOR,
         ).pack(anchor="w", pady=4)
+
+        tk.Label(
+            stats_box,
+            text=f"Nível Final: {self.engine.player.level} (XP: {self.engine.player.xp}/{self.engine.player.xp_to_next_level})",
+            font=("Helvetica", 11, "bold"),
+            bg=settings.PANEL_BG,
+            fg="#89b4fa",
+        ).pack(anchor="w", pady=2)
 
         tk.Label(
             stats_box,
@@ -634,6 +679,21 @@ class GUIView:
             )
             self._update_ui_state()
             self._append_log(f">> CURA! Você recuperou +{data['healed_amount']} HP.")
+
+        elif event_type == "XP_GAINED":
+            self._update_ui_state()
+            self._append_log(f">> Você ganhou +{data['amount']} XP por derrotar o inimigo!")
+
+        elif event_type == "LEVEL_UP":
+            self._animate_floating_text(
+                getattr(self, "hero_x", 200), getattr(self, "hero_y", 200),
+                "LEVEL UP! ✨", "#f9e2af"
+            )
+            self._update_ui_state()
+            self._append_log(
+                f"🎉 LEVEL UP! Nível {data['new_level']} alcançado! "
+                f"Vida restaurada ({data['health']}/{data['max_health']} HP) e Dano Base aumentado!"
+            )
 
         elif event_type == "ACTION_FAILED":
             self._append_log(f">> AVISO: {data['reason']}")
