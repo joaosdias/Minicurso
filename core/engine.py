@@ -40,7 +40,7 @@ class GameEngine:
             name="Goblin Voraz",
             max_health=settings.ENEMY_MAX_HEALTH,
             base_damage=settings.ENEMY_BASE_DAMAGE,
-            xp_reward=50 # Definido como 50 como exemplo (pode puxar de um settings se preferir)
+            xp_reward=50  # Definido como 50 como exemplo (pode puxar de um settings se preferir)
         )
 
         self.current_turn: str = "player"
@@ -219,13 +219,13 @@ class GameEngine:
         """Processa a derrota do inimigo, incluindo ganho de XP e finalização."""
         xp_earned = self.enemy.xp_reward
         leveled_up = self.player.gain_xp(xp_earned)
-        
+
         self.notify("XP_GAINED", {
             "amount": xp_earned,
             "current_xp": self.player.xp,
             "xp_to_next_level": self.player.xp_to_next_level
         })
-        
+
         if leveled_up:
             self.notify("LEVEL_UP", {
                 "new_level": self.player.level,
@@ -246,4 +246,4 @@ class GameEngine:
             "total_turns": self.total_turns,
             "total_damage_dealt": self.total_damage_dealt,
             "potions_used": self.potions_used,
-        })
+            })

@@ -493,7 +493,8 @@ class GUIView:
 
         # Atualiza XP e Barra de Experiência
         self.player_xp_lbl.config(text=f"XP: {p.xp} / {p.xp_to_next_level}")
-        self.player_xp_progress["value"] = (p.xp / p.xp_to_next_level) * 100 if p.xp_to_next_level > 0 else 0
+        self.player_xp_progress["value"] = 
+        (p.xp / p.xp_to_next_level) * 100 if p.xp_to_next_level > 0 else 0
 
         # Atualiza HP e Barra de Vida do Inimigo
         self.enemy_hp_lbl.config(text=f"Vida: {e.health} / {e.max_health} HP")
@@ -568,7 +569,8 @@ class GUIView:
 
         tk.Label(
             stats_box,
-            text=f"Nível Final: {self.engine.player.level} (XP: {self.engine.player.xp}/{self.engine.player.xp_to_next_level})",
+            text=f"Nível Final: {self.engine.player.level} 
+            (XP: {self.engine.player.xp}/{self.engine.player.xp_to_next_level})",
             font=("Helvetica", 11, "bold"),
             bg=settings.PANEL_BG,
             fg="#89b4fa",
