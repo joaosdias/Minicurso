@@ -13,7 +13,6 @@ import argparse
 from core.engine import GameEngine
 from ui.cli_view import CLIView
 
-
 def main() -> None:
     """Função principal que analisa argumentos da CLI e inicia o jogo."""
     parser = argparse.ArgumentParser(

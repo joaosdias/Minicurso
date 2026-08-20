@@ -79,10 +79,15 @@ class Player(Character):
         base_damage: int = 15,
         potions: int = 3
     ) -> None:
-        """Inicializa o jogador com poções e habilidade especial."""
+        """Inicializa o jogador com poções, habilidade especial, e atributos de nível."""
         super().__init__(name, max_health, base_damage)
         self.potions_count: int = potions
         self.special_attack_cooldown: int = 0
+        
+        # Novos atributos de progressão
+        self.level: int = 1
+        self.xp: int = 0
+        self.xp_to_next_level: int = 100  # Quantidade de XP necessária para o nível 2
 
     def use_potion(self, heal_amount: int) -> int:
         """Utiliza uma poção do inventário."""
@@ -109,6 +114,33 @@ class Player(Character):
         if self.special_attack_cooldown > 0:
             self.special_attack_cooldown -= 1
 
+    def gain_xp(self, amount: int) -> bool:
+        """Adiciona XP ao jogador e verifica se subiu de nível.
+        
+        Returns:
+            bool: True se o jogador subiu de nível neste ganho de XP.
+        """
+        self.xp += amount
+        leveled_up = False
+        
+        # Usando while caso o jogador ganhe muito XP e suba múltiplos níveis de uma vez
+        while self.xp >= self.xp_to_next_level:
+            self.level_up()
+            leveled_up = True
+            
+        return leveled_up
+
+    def level_up(self) -> None:
+        """Aumenta o nível, recupera a vida total e aumenta o dano base."""
+        self.xp -= self.xp_to_next_level
+        self.level += 1
+        self.xp_to_next_level = int(self.xp_to_next_level * 1.5)  # Aumenta a dificuldade de subir de nível
+        
+        # Bônus de Subida de Nível
+        self.base_damage += 5  # Incrementa o dano base
+        self.max_health += 10  # Opcional: Aumentar a vida máxima
+        self.health = self.max_health  # Restaura a vida completamente
+
 
 class Enemy(Character):
     """Representa o oponente da arena."""
@@ -117,7 +149,9 @@ class Enemy(Character):
         self,
         name: str = "Gargula de Pedra",
         max_health: int = 80,
-        base_damage: int = 12
+        base_damage: int = 12,
+        xp_reward: int = 50  # Nova adição: XP concedido ao ser derrotado
     ) -> None:
         """Inicializa o inimigo."""
         super().__init__(name, max_health, base_damage)
+        self.xp_reward = xp_reward

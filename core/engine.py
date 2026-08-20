@@ -40,6 +40,7 @@ class GameEngine:
             name="Goblin Voraz",
             max_health=settings.ENEMY_MAX_HEALTH,
             base_damage=settings.ENEMY_BASE_DAMAGE,
+            xp_reward=50 # Definido como 50 como exemplo (pode puxar de um settings se preferir)
         )
 
         self.current_turn: str = "player"
@@ -71,6 +72,9 @@ class GameEngine:
             "player_name": self.player.name,
             "player_health": self.player.health,
             "player_max_health": self.player.max_health,
+            "player_level": self.player.level,
+            "player_xp": self.player.xp,
+            "player_xp_to_next_level": self.player.xp_to_next_level,
             "enemy_name": self.enemy.name,
             "enemy_health": self.enemy.health,
             "enemy_max_health": self.enemy.max_health,
@@ -97,7 +101,7 @@ class GameEngine:
         })
 
         if not self.enemy.is_alive():
-            self._finish_game(winner=self.player.name)
+            self._handle_enemy_defeat()
             return True
 
         self._switch_turn()
@@ -127,7 +131,7 @@ class GameEngine:
         })
 
         if not self.enemy.is_alive():
-            self._finish_game(winner=self.player.name)
+            self._handle_enemy_defeat()
             return True
 
         self._switch_turn()
@@ -210,6 +214,27 @@ class GameEngine:
         else:
             self.current_turn = "player"
             self.notify("TURN_CHANGED", {"current_turn": self.current_turn})
+
+    def _handle_enemy_defeat(self) -> None:
+        """Processa a derrota do inimigo, incluindo ganho de XP e finalização."""
+        xp_earned = self.enemy.xp_reward
+        leveled_up = self.player.gain_xp(xp_earned)
+        
+        self.notify("XP_GAINED", {
+            "amount": xp_earned,
+            "current_xp": self.player.xp,
+            "xp_to_next_level": self.player.xp_to_next_level
+        })
+        
+        if leveled_up:
+            self.notify("LEVEL_UP", {
+                "new_level": self.player.level,
+                "health": self.player.health,
+                "max_health": self.player.max_health,
+                "base_damage": self.player.base_damage
+            })
+
+        self._finish_game(winner=self.player.name)
 
     def _finish_game(self, winner: str) -> None:
         """Encerra a partida e compila as estatísticas."""
